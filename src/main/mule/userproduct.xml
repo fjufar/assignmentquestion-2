@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="f900be0e-fed2-4f7d-afee-3173bfe7833b" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="afb4b500-176c-44be-818f-6bcfbe33cbdb" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="root" database="craftonlineshopping" />
+	</db:config>
+	<db:config name="Database_Config1" doc:name="Database Config" doc:id="e15d1dcc-2cc0-489c-b39c-84c189e66761" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="root" database="sakila" />
+	</db:config>
+	<flow name="userproductFlow" doc:id="50ee087f-2834-448b-a5c6-afdbdf116b73" >
+		<http:listener doc:name="Listener" doc:id="cf688ff6-d7b9-4d22-8e14-ce5efaef45fd" config-ref="HTTP_Listener_config" path="/userProduct"/>
+		<choice doc:name="Choice" doc:id="78723cb6-d866-408b-b43c-6d2504bb7b94" >
+			<when expression='#[attributes.queryParams.name == "product"]'>
+				<db:select doc:name="Select" doc:id="e12a5a83-0ca0-4495-aa9d-4c7b2424e9de" config-ref="Database_Config">
+					<db:sql ><![CDATA[SELECT * FROM product;]]></db:sql>
+				</db:select>
+				<ee:transform doc:name="Transform Message" doc:id="c268de94-cd45-4b06-8e7d-652252a4d6d3" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<set-payload value="#[payload]" doc:name="Set Payload" doc:id="b03d3cfe-4e99-485e-9853-fab773ac6cd0" />
+			</when>
+			<when expression='#[attributes.queryParams.name == "film"]'>
+				<db:select doc:name="Select" doc:id="59e1924c-d260-457c-881f-e90dafb1676d" config-ref="Database_Config1">
+					<db:sql ><![CDATA[SELECT * FROM country;]]></db:sql>
+				</db:select>
+				<ee:transform doc:name="Transform Message" doc:id="d0a1b4a7-3dfe-4fc0-98a8-8db6e601d6a2" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<set-payload value="#[payload]" doc:name="Set Payload" doc:id="03066634-b77b-4351-b8c4-699d01b3af66" />
+			</when>
+			<otherwise >
+				<set-payload value="#[payload]" doc:name="Set Payload" doc:id="def0393d-441b-4864-addc-3056ce5fde94" />
+			</otherwise>
+		</choice>
+	</flow>
+</mule>
